@@ -1,25 +1,21 @@
-"""Adds config flow for Blueprint."""
+"""Config flow for NSW Fuel integration."""
 
 from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
-from slugify import slugify
 
-from .api import (
-    IntegrationBlueprintApiClient,
-    IntegrationBlueprintApiClientAuthenticationError,
-    IntegrationBlueprintApiClientCommunicationError,
-    IntegrationBlueprintApiClientError,
-)
+from .api import NSWFuelApiClient, NSWFuelApiClientError, NSWFuelApiClientAuthError
 from .const import DOMAIN, LOGGER
 
+CONF_STATION_CODE = "station_code"
 
-class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+
+class NSWFuelConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow for NSW Fuel."""
 
     VERSION = 1
 
@@ -28,62 +24,67 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         user_input: dict | None = None,
     ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
-        _errors = {}
+        errors: dict[str, str] = {}
+
         if user_input is not None:
             try:
                 await self._test_credentials(
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
+                    client_id=user_input[CONF_CLIENT_ID],
+                    client_secret=user_input[CONF_CLIENT_SECRET],
                 )
-            except IntegrationBlueprintApiClientAuthenticationError as exception:
-                LOGGER.warning(exception)
-                _errors["base"] = "auth"
-            except IntegrationBlueprintApiClientCommunicationError as exception:
-                LOGGER.error(exception)
-                _errors["base"] = "connection"
-            except IntegrationBlueprintApiClientError as exception:
-                LOGGER.exception(exception)
-                _errors["base"] = "unknown"
+            except NSWFuelApiClientAuthError as err:
+                LOGGER.warning("Authentication failed: %s", err)
+                errors["base"] = "auth"
+            except NSWFuelApiClientError as err:
+                LOGGER.error("Error connecting to NSW Fuel API: %s", err)
+                errors["base"] = "connection"
             else:
-                await self.async_set_unique_id(
-                    ## Do NOT use this in production code
-                    ## The unique_id should never be something that can change
-                    ## https://developers.home-assistant.io/docs/config_entries_config_flow_handler#unique-ids
-                    unique_id=slugify(user_input[CONF_USERNAME])
-                )
+                # Use station_code as part of the unique ID for this config entry
+                unique_id = f"{user_input[CONF_CLIENT_ID]}-{user_input[CONF_STATION_CODE]}"
+                await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=user_input[CONF_USERNAME],
+                    title=f"NSW Fuel ({user_input[CONF_STATION_CODE]})",
                     data=user_input,
                 )
 
+        # Show the form with selectors and defaults
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_USERNAME,
-                        default=(user_input or {}).get(CONF_USERNAME, vol.UNDEFINED),
+                        CONF_CLIENT_ID,
+                        default=(user_input or {}).get(CONF_CLIENT_ID, vol.UNDEFINED),
                     ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT,
-                        ),
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
-                    vol.Required(CONF_PASSWORD): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.PASSWORD,
-                        ),
+                    vol.Required(
+                        CONF_CLIENT_SECRET,
+                        default=(user_input or {}).get(CONF_CLIENT_SECRET, vol.UNDEFINED),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
                     ),
-                },
+                    vol.Required(
+                        CONF_STATION_CODE,
+                        default=(user_input or {}).get(CONF_STATION_CODE, vol.UNDEFINED),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ),
+                }
             ),
-            errors=_errors,
+            errors=errors,
         )
 
-    async def _test_credentials(self, username: str, password: str) -> None:
-        """Validate credentials."""
-        client = IntegrationBlueprintApiClient(
-            username=username,
-            password=password,
-            session=async_create_clientsession(self.hass),
-        )
-        await client.async_get_data()
+    async def _test_credentials(self, client_id: str, client_secret: str) -> None:
+        """Validate credentials by fetching a token."""
+        session = async_create_clientsession(self.hass)
+        client = NSWFuelApiClient(session=session, client_id=client_id, client_secret=client_secret)
+
+        # Attempt to fetch reference data as a quick test
+        try:
+            await client.async_get_reference_data()
+        except NSWFuelApiClientAuthError:
+            raise
+        except NSWFuelApiClientError as err:
+            raise

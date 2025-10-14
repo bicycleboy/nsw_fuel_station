@@ -1,6 +1,6 @@
 {
   "domain": "nsw_fuel_ui",
-  "name": "nsw fuel ui",
+  "name": "NSW Fuel Prices",
   "codeowners": [
     "@bicycleboy"
   ],
@@ -8,5 +8,7 @@
   "documentation": "git@github.com:bicycleboy/nsw_fuel_ui.git",
   "iot_class": "cloud_polling",
   "issue_tracker": "git@github.com:bicycleboy/nsw_fuel_ui.git/issues",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "integration_type": "service",
+  "requirements": ["aiohttp>=3.9.0"]
 }

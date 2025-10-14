@@ -5,23 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.const import UnitOfVolume
+from .const import DOMAIN
 
-from .entity import IntegrationBlueprintEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-    from .coordinator import BlueprintDataUpdateCoordinator
-    from .data import IntegrationBlueprintConfigEntry
-
-ENTITY_DESCRIPTIONS = (
-    SensorEntityDescription(
-        key="nsw_fuel_ui",
-        name="Integration Sensor",
-        icon="mdi:format-quote-close",
-    ),
-)
 
 
 async def async_setup_entry(
@@ -30,28 +20,24 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
-    async_add_entities(
-        IntegrationBlueprintSensor(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_DESCRIPTIONS
-    )
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([FuelPriceSensor(coordinator)], True)
 
 
-class IntegrationBlueprintSensor(IntegrationBlueprintEntity, SensorEntity):
-    """nsw_fuel_ui Sensor class."""
-
-    def __init__(
-        self,
-        coordinator: BlueprintDataUpdateCoordinator,
-        entity_description: SensorEntityDescription,
-    ) -> None:
-        """Initialize the sensor class."""
-        super().__init__(coordinator)
-        self.entity_description = entity_description
+class FuelPriceSensor(SensorEntity):
+    def __init__(self, coordinator):
+        self.coordinator = coordinator
+        self._attr_name = "Fuel Price"
+        self._attr_unique_id = f"fuel_price_{coordinator.station_code}"
 
     @property
-    def native_value(self) -> str | None:
-        """Return the native value of the sensor."""
-        return self.coordinator.data.get("body")
+    def native_value(self):
+        data = self.coordinator.data.get("prices")
+        return data["price"] if data else None
+
+    @property
+    def native_unit_of_measurement(self):
+        return "c/L"
+
+    async def async_update(self):
+        await self.coordinator.async_request_refresh()
