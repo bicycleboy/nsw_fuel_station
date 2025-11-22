@@ -2,21 +2,40 @@
     "config": {
         "step": {
             "user": {
-                "description": "Visit api.nsw.gov.au, subscribe to the FuelCheck API and create an app to obtain your API Key and Secret.",
+                "title": "Setup the NSW Fuel API Integration",
+                "description": "Visit api.nsw.gov.au, subscribe to the FuelCheck API (free) and create an app (any name) to obtain your API Key and Secret.",
                 "data": {
                     "client_id": "API Key",
                     "client_secret": "API Secret",
-                    "station_code": "Fuel Station Code"
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                },
+                "data_description": {
+                    "client_id": "",
+                    "client_secret": "",
+                    "latitude": "",
+                    "longitude": "Either accept these coordinates from your Home zone or enter a location above to find nearby stations. You can find latitude and longitude using services such as Google Maps or latlong.net.\n\n{attribution}"
+                }
+            },
+            "station_select": {
+                "title": "Select Stations",
+                "description": "These are the stations close to the coordinates you entered. Select the stations you wish to create a fuel price sensor for. You can return to this form and use different coordinates for additional fuel stations.",
+                "data": {
+                    "selected_stations": "Stations"
                 }
             }
         },
         "error": {
-            "auth": "API Key or API Secret is wrong.",
-            "connection": "Unable to connect to the server.",
+            "auth": "NSW Fuel API Key or API Secret is wrong.",
+            "connection": "Error connecting to the server. Check logs.",
+            "invalid_coordinates": "The latitude or longitude is invalid or outside NSW/TAS.",
             "unknown": "Unknown error occurred."
         },
         "abort": {
             "already_configured": "This entry is already configured."
         }
+    },
+    "attribution": {
+        "fuel_data": "Data provided by NSW Fuel Check"
     }
 }
