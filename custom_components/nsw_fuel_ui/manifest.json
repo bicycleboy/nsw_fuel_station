@@ -1,0 +1,17 @@
+{
+  "domain": "nsw_fuel_ui",
+  "name": "NSW Fuel Check",
+  "codeowners": [
+    "@bicycleboy"
+  ],
+  "config_flow": true,
+  "documentation": "git@github.com:bicycleboy/nsw_fuel_ui.git",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "git@github.com:bicycleboy/nsw_fuel_ui.git/issues",
+  "version": "2.0.0b1",
+  "integration_type": "service",
+  "requirements": [
+    "aiohttp>=3.9.0"
+  ],
+  "dependencies": []
+}
