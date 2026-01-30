@@ -6,14 +6,22 @@ from datetime import timedelta
 from unittest.mock import AsyncMock
 
 import pytest
-from custom_components.nsw_fuel_station.const import (
-    DEFAULT_FUEL_TYPE,
-    E10_AVAILABLE_STATES,
-)
-from custom_components.nsw_fuel_station.coordinator import NSWFuelCoordinator
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from nsw_fuel import NSWFuelApiClientAuthError, NSWFuelApiClientError
+from nsw_fuel import (
+    NSWFuelApiClientAuthError,
+    NSWFuelApiClientError,
+    Price,
+    Station,
+    StationPrice,
+)
+
+from custom_components.nsw_fuel_station.const import (
+    DEFAULT_FUEL_TYPE,
+)
+from custom_components.nsw_fuel_station.coordinator import (
+    NSWFuelCoordinator,
+)
 
 from .conftest import (
     HOBART_LAT,
@@ -99,7 +107,6 @@ async def test_update_cheapest_stations_e10_u91(
     # U91: 170, 165
     # E10: 168, 160  -> should win overall cheapest
     async def fake_within_radius(latitude, longitude, radius=25, fuel_type=None):
-        from nsw_fuel.dto import Price, Station, StationPrice
 
         station = Station(
             ident=None,
@@ -300,7 +307,7 @@ def test_extract_locations_empty(hass, mock_api_client) -> None:
 
 
 def test_nicknames_property(coordinator: NSWFuelCoordinator) -> None:
-    """nicknames property exposes configured nicknames."""
+    """Nicknames property exposes configured nicknames."""
     names = coordinator.nicknames
 
     assert names == ["Home"]

@@ -57,4 +57,18 @@ markers = [
 # Use a verbose output and colored diff for readability
 addopts = "-v --tb=short --color=yes"
 
-
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = [
+    "ANN001",
+    "ANN201",
+    "ANN202",
+    "ARG001",
+    "D103",
+    "PLR0913",
+    "PLR2004",
+    "PT011",
+    "PT022",
+    "RUF013",
+    "S101",
+    "SLF001",
+]

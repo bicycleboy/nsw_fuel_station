@@ -1,17 +1,14 @@
 """Fixture definitions for NSW Fuel UI tests."""
-# type: ignore[typeddict-item]
-# pyright: ignore[reportTypedDictNotRequiredAccess]
-# pylint: disable=redefined-outer-name
-
 
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from custom_components.nsw_fuel_station.const import DOMAIN
 from nsw_fuel.dto import Price, Station, StationPrice
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
 )
+
+from custom_components.nsw_fuel_station.const import DOMAIN
 
 LATITUDE = -35.28
 LONGITUDE = 149.13
@@ -90,7 +87,10 @@ def mock_api_client_fixture():
 
     client.authenticate = AsyncMock(return_value=True)
 
-    async def _get_stations_near_location(latitude, longitude, radius=25):
+    async def _get_stations_near_location(
+        latitude: float,
+        longitude: float,
+        radius: int = 25):
         if latitude < -40:
             return STATIONS_TAS
         return STATIONS_NSW
@@ -99,7 +99,9 @@ def mock_api_client_fixture():
         side_effect=_get_stations_near_location
     )
 
-    async def _get_fuel_prices_for_station(station_code, au_state=None):
+    async def _get_fuel_prices_for_station(
+            station_code: str,
+            au_state: str = "NSW"):
         """Return List[Price] (favorites path)."""
         station_code = int(station_code)
         station_prices = FUEL_PRICES.get(station_code, {})
@@ -120,7 +122,7 @@ def mock_api_client_fixture():
     )
 
     async def _get_fuel_prices_within_radius(
-        latitude, longitude, radius=25, fuel_type=None
+        latitude: float, longitude: float, radius: int = 25, fuel_type: str = "U91"
     ):
         stations = await _get_stations_near_location(latitude, longitude, radius)
         results = []

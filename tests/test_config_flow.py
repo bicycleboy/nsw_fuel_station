@@ -1,21 +1,16 @@
 """Tests for NSW Fuel Check config flow."""
-# type: ignore[typeddict-item]
-# pyright: ignore[reportTypedDictNotRequiredAccess]
-# pylint: disable=redefined-outer-name
-# ruff: noqa: S101
-# These are intentional for pytest fixtures
-# ConfigFlowResult is a TypedDict with optional keys that change based on result type.
 
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from custom_components.nsw_fuel_station.const import DOMAIN
 from homeassistant import config_entries
 from homeassistant.const import CONF_CLIENT_ID, CONF_CLIENT_SECRET
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from nsw_fuel import NSWFuelApiClientAuthError, NSWFuelApiClientError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.nsw_fuel_station.const import DOMAIN
 
 from .conftest import (
     CLIENT_ID,
@@ -41,7 +36,7 @@ from .conftest import (
     ],
     ids=["nsw", "tas-d", "tas-e"],
 )
-async def test_successful_config_flow(  # noqa: PLR0913
+async def test_successful_config_flow(
     hass: HomeAssistant,
     mock_api_client: AsyncMock,
     mock_env: dict[str, str],
@@ -742,7 +737,7 @@ async def test_add_multiple_nicknames(
 
         # Verify we now have TWO separate config entries
         entries = hass.config_entries.async_entries(DOMAIN)
-        assert len(entries) == 2  # noqa: PLR2004
+        assert len(entries) == 2
 
         # Find each entry by nickname
         nicknames = {}
