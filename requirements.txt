@@ -1,5 +1,8 @@
+--index-url https://test.pypi.org/simple/
+--extra-index-url https://pypi.org/simple/
+
 homeassistant>=2026.1.0b2
-nsw_fuel>=2.0.0b2
+nsw_fuel==2.0.0b2
 pytest==9.0.0
 pytest_homeassistant_custom_component==0.13.302
 voluptuous==0.15.2
